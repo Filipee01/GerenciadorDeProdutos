@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { X } from "lucide-react";
+import { X , Printer} from "lucide-react";
 
 const ProductList = ({ schools, removeProduct, removeSchool }) => {
   const formatCurrency = (value) =>
@@ -8,7 +8,9 @@ const ProductList = ({ schools, removeProduct, removeSchool }) => {
       currency: "BRL",
     }).format(value);
 
-  const calcValue = ({ unitValue, quantity }) => unitValue * quantity;
+  const calcValue = ({ unitValue, quantity, unitContent = 1 }) => {
+    return unitValue * quantity * unitContent;
+  };
 
   const calcSchoolTotal = (products) =>
     products.reduce((acc, product) => acc + calcValue(product), 0);
@@ -16,9 +18,21 @@ const ProductList = ({ schools, removeProduct, removeSchool }) => {
   const calcGrandTotal = () =>
     schools.reduce((acc, school) => acc + calcSchoolTotal(school.products), 0);
 
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="max-w-lg mx-auto overflow-x-hidden">
-      <h2 className="text-xl font-bold mb-4 text-white">Lista de Escolas</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold text-white">Lista de Fornecedores</h2>
+        <button
+          onClick={handlePrint}
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+        <Printer />
+        </button>
+      </div>
       {schools.map((school, schoolIndex) => (
         <div
           key={schoolIndex}
@@ -31,7 +45,7 @@ const ProductList = ({ schools, removeProduct, removeSchool }) => {
             <X />
           </button>
           <h3 className="font-bold mb-2 text-lg text-blue-500 flex gap-1">
-            Escola: <p className="text-black">{school.name}</p>
+            Fornecedor: <p className="text-black">{school.name}</p>
           </h3>
           <ul className="space-y-2">
             {school.products.map((product, productIndex) => (
@@ -50,6 +64,15 @@ const ProductList = ({ schools, removeProduct, removeSchool }) => {
                   {product.quantity} {product.type}
                   {product.quantity > 1 ? "s" : ""}
                 </div>
+                {product.type !== "UNIDADE" && (
+                  <div>
+                    <span className="font-bold">
+                      Conteúdo por {product.type}:
+                    </span>{" "}
+                    {product.unitContent}{" "}
+                    {product.type === "KG" ? "KG" : "unidades"}
+                  </div>
+                )}
                 <div>
                   <span className="font-bold">Valor Unitário: </span>
                   {formatCurrency(product.unitValue)}
@@ -68,7 +91,7 @@ const ProductList = ({ schools, removeProduct, removeSchool }) => {
             ))}
           </ul>
           <p className="mt-4 font-bold text-black flex gap-1">
-            Total da Escola:
+            Total:
             <span className="text-emerald-600">
               {formatCurrency(calcSchoolTotal(school.products))}
             </span>
@@ -86,7 +109,20 @@ const ProductList = ({ schools, removeProduct, removeSchool }) => {
 };
 
 ProductList.propTypes = {
-  schools: PropTypes.array.isRequired,
+  schools: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      products: PropTypes.arrayOf(
+        PropTypes.shape({
+          name: PropTypes.string.isRequired,
+          type: PropTypes.string.isRequired,
+          quantity: PropTypes.number.isRequired,
+          unitValue: PropTypes.number.isRequired,
+          unitContent: PropTypes.number,
+        })
+      ).isRequired,
+    })
+  ).isRequired,
   removeProduct: PropTypes.func.isRequired,
   removeSchool: PropTypes.func.isRequired,
 };

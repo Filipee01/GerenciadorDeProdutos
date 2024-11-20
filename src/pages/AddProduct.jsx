@@ -6,6 +6,7 @@ function AddProduct({ addProduct, addSchool }) {
   const [unitValue, setUnitValue] = useState("");
   const [type, setType] = useState("KG");
   const [quantity, setQuantity] = useState("");
+  const [unitContent, setUnitContent] = useState(""); // Novo campo
   const [schoolSelected, setSchoolSelected] = useState(false);
 
   const handleSchoolSubmit = (e) => {
@@ -33,16 +34,28 @@ function AddProduct({ addProduct, addSchool }) {
       return;
     }
 
+    if (
+      (type === "Fardo" || type === "Pack") &&
+      (!unitContent || unitContent <= 0)
+    ) {
+      alert("Por favor, insira o conteúdo por unidade para Fardo ou Pack.");
+      return;
+    }
+
     addProduct({
       name,
       unitValue: parseFloat(unitValue),
       type,
       quantity: parseFloat(quantity),
+      unitContent:
+        type === "Fardo" || type === "Pack" ? parseFloat(unitContent) : 1, // Adiciona o conteúdo por unidade
     });
+
     setName("");
     setType("KG");
     setUnitValue("");
     setQuantity("");
+    setUnitContent(""); // Reseta o campo adicional
   };
 
   return (
@@ -51,14 +64,14 @@ function AddProduct({ addProduct, addSchool }) {
       <form onSubmit={handleSchoolSubmit} className="space-y-4 mb-6">
         <div>
           <label className="block text-sm font-medium mb-1">
-            Nome da Escola
+            Nome do Fornecedor
           </label>
           <input
             type="text"
             value={schoolName}
             onChange={(e) => setSchoolName(e.target.value)}
             className="w-full border rounded p-2"
-            placeholder="Ex: Escola de Aplicação Professor Chaves"
+            placeholder="Ex: Coca-cola"
             required
           />
           <button
@@ -70,8 +83,8 @@ function AddProduct({ addProduct, addSchool }) {
             }`}
           >
             {schoolSelected
-              ? "Escola Selecionada"
-              : "Selecionar/Adicionar Escola"}
+              ? "Fornecedor Selecionado"
+              : "Selecionar/Adicionar Fornecedor"}
           </button>
         </div>
       </form>
@@ -85,7 +98,7 @@ function AddProduct({ addProduct, addSchool }) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full border rounded p-2"
-            placeholder="Ex: Arroz"
+            placeholder="Ex: Sprite"
             required
           />
         </div>
@@ -99,8 +112,26 @@ function AddProduct({ addProduct, addSchool }) {
           >
             <option value="KG">KG</option>
             <option value="Unidade">UNIDADE</option>
+            <option value="Fardo">FARDO</option>
+            <option value="Pack">PACK</option>
           </select>
         </div>
+        {["Fardo", "Pack"].includes(type) && ( // Mostra o campo apenas para Fardo ou Pack
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Conteúdo por Unidade ({type})
+            </label>
+            <input
+              type="number"
+              step="1"
+              value={unitContent}
+              onChange={(e) => setUnitContent(e.target.value)}
+              className="w-full border rounded p-2"
+              placeholder="Ex: 12"
+              required
+            />
+          </div>
+        )}
         <div>
           <label className="block text-sm font-medium mb-1">
             Valor Unitário
